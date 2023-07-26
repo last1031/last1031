@@ -1,0 +1,7 @@
+h1, h2 {text-align: center; } //user-select: none; 
+p {text-align: left; font-family: 'Courier New', Courier, monospace;}
+input[type=image]:hover {border-radius: 10px; border: 4px solid red;}
+input[type=image] {border: 4px solid #ccc;}
+th{border-width:0px, 0px, 0px, 1px}
+td{text-align: center;}
+span {text-align: left; font-family: 'Courier New', Courier, monospace;}

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta naver=""viewport" content="width=device-width">
+    <title>삼각함수 수행평가</title>
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+    //로딩 함수: 기록 파일 부르고 정리하기     
+        async function load() {
+            const data = await fetch('record.txt'); 
+            text = await data.text();
+            if(text.length > 3 ) {
+                const sames = text.split(',');
+                names = sames;
+                } else {
+                names = [];}
+            visual(names);
+            document.getElementById('name_1').innerHTML = `${visu}`;
+        
+            const musicbgm = document.querySelector('#myaudiobgm');
+            musicbgm.src=`music/bgm/${musicnum%4+1}.ogg`
+            musicbgm.play() ;  //배경 음악 끄기
+        }
+        load();
+
+    //변수 정의
+        var text="abc";
+        var num = 0 // 문제 번호
+        var bunho = -1 // 문제세트[num]
+        var nums = mixset(); // 문제세트
+        var timerId; //타이머 바               
+        var name // 학번
+        var names = [] // 성적 원시 기록 자료
+        var visu = "" ; // 보기 좋은 성적 자료
+        var musicnum = Math.floor(Math.random()*25*9);
+        const answer = [0,1,2,3,4,3,2,1,0,-1,-2,-3,-4,-3,-2,-1,0,4,3,2,1,0,-1,-2,-3,-4,-3,-2,-1,0,1,2,3,4] // sin, cos 순서대로
+
+    //숫자 섞기 함수
+        function mixset() {
+            const candidate = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34];
+            const shuffle = [];
+            while (candidate.length > 0) {
+                const random = Math.floor(Math.random() * candidate.length);
+                const spliceArray = candidate.splice(random, 1);
+                const value = spliceArray[0]; 
+                shuffle.push(value); 
+                };
+            return shuffle;
+        }
+
+    //names 자료를 보기 좋게 변환하는 함수
+        function visual(na) {
+            visu = "" ;
+            for(i=0 ; i < Math.min(na.length,30) ; i++) {
+                visu = visu + na[i].substr(10,4) + "(" +na[i].substr(0,2) +") ";
+            }
+        }
+
+    //새 게임 시작 함수
+        function start() {
+            const music_ = document.querySelector('#myaudio');
+            music_.src= `music/play/${musicnum%25+1}.ogg`    //음악파일 호출
+            music_.play();                                      //음악 재생
+            musicnum++;
+            const Timer1 = document.querySelector('#timer');
+            Timer1.value = 0;                                   //타이머 리셋
+            clearInterval(timerId);                             //타이머 반복 중지
+            var totalTime = 30000;                              //총 30초 부여
+            var oldTime = Date.now();                           //게임 시작 시각 기록
+
+            timerId = setInterval(() => {                   //시간 반복함수
+                const currentTime = Date.now();                 //현재 시각(밀리초)
+                const diff = currentTime - oldTime;             //걸린 시간(밀리초)
+                const remainSec = (totalTime - diff)/1000;      //남은 시간(초)
+                Timer1.value = 250-remainSec*50/6;                    //타이머 표시
+                if(remainSec<-0.2){                             //남은 시간이 0미만
+                    porf();                                     //합격여부 판단
+                    clearInterval(timerId);                     //시간 초기화
+                }
+            },500)                                              //반복 단위
+            num=0;                                              //문제 초기화
+            nums = mixset();                                    //문제세트 초기화
+            bunho = nums[num%34];                               //첫번째 문항 호출
+            loadimg(bunho);                                     //그림 호출
+            const musicbgm = document.querySelector('#myaudiobgm');
+            musicbgm.stop();  //배경 음악 끄기
+            }  
+
+    //출제 함수
+        function loadimg(k_) {
+            const imgA = document.querySelector('#funct');      //함수그림 호출
+            const imgB = document.querySelector('#bun');        //각 그림 호출
+            imgA.src = `base/f${Math.floor((k_-1)/17)}.png`;         //함수그림 번호 부여
+            imgB.src = `prob/${(k_-1)%17 +1}.png`;              //각 그림 번호 부여
+        }
+
+    //탈락함수
+        function youout(){
+            const music_ = document.querySelector('#myaudio');  //음악 호출
+            music_.src= `music/fail/${musicnum%9 + 1}.mp3`    //음악파일 호출
+            music_.play();                                      //음악 재생
+            loadimg(0);                                         //문제 그림 초기화
+            bunho = -1;                                         //이상한 버튼 누름 방지
+        }
+
+    //합격함수
+        function yousuc(s_) {
+            loadimg(0);                                         //문항 이미지 초기화
+            var yourname;
+            yourname = prompt(`${s_}점. 성공입니다.`,'학번 4자리를 입력하세요');
+            if (yourname>2100 && yourname<2826) {} else{        //학번 오류시 미등록
+                yourname = prompt('학번 입력 오류입니다.','학번 4자리를 입력하세요'); 
+                if (yourname>2100 && yourname<2826) {} else{
+                    alert('기록이 인정되지 않습니다.'); exit;}
+                };
+            if (s_<10){s_ = "0"+s_} else {s_= ""+s_};           // 두자리 문자로 만들기
+
+            var when = Math.floor(Date.now()/30000)-46322871;   //통과시간 부여
+            names[names.length] = s_ + when + yourname;         //합격자 원시자료 생성
+            names.sort().reverse();                             //정렬
+            visual(names);                                      //화면에 호출
+            document.getElementById('name_1').innerHTML = `${visu}`;
+            //localStorage.setItem('myNames', names);
+            saverecord();
+        }    
+                
+    //채점함수
+        function check(k) {
+            if(bunho<0){
+                alert('go! 를 눌러야 시작됩니다.'); 
+                exit();
+            } 
+            if(k == answer[bunho-1]){                           //답이 배열과 일치하는지 확인
+                num++;                                          //정답이면 다음 문항 준비
+                const Point1 = document.querySelector('#point1');   //점수판 올림
+                Point1.value = num;
+                document.getElementById('point').innerHTML = num + '<br> 점';   //점수 기록
+                bunho = nums[num%34];                           //다음문항 출제
+                loadimg(bunho);
+            }else {porf();}
+        }
+
+    //합불함수 : 타이머,점수 초기화, 6점이상 합격
+        function porf() {
+            clearInterval(timerId);                                 //타이머 삭제
+            const Timer1 = document.querySelector('#timer');        //타이머바 호출
+            Timer1.value = 0;                                       //타이머바 초기화
+            const Point1 = document.querySelector('#point1');       //점수바 호출
+            Point1.value = 0;                                       //점수바 초기화
+            document.getElementById('point').innerHTML = ' <br> 점';//점수판 초기화
+            if(num > 5){yousuc(num);} else{youout();};              //6점이상 합격
+            bunho = -1;
+        }
+
+    //기록 파일 삭제하기
+        function reset() {
+            names = [];
+            saverecord();
+            visual(names);
+            document.getElementById('name_1').innerHTML = `${visu}`; //화면에 호출
+        }
+    
+    //write_record.php 에 기록쓰기
+        function saverecord() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "write_record.php", true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send("num="+names);
+        }
+    </script>
+
+</head>
+<body>
+    <div><audio id="myaudio" /></audio><audio id="myaudiobgm" /></audio></div>
+    <h2>Click a Radian <input type="button" value="ReSet" width="100px" height="50" onclick="reset()"> </h2>
+    <table align='center' width='320px'><tr><td>
+        <h4 align = "right"> Timer <input id='timer' type="range" min="0" max="250" style="width:250px" value="0">
+        Point <input id='point1' type="range" min="0" max="6" style="width:250px" value="0"> </h4>
+        </td></tr>
+    </table>
+
+    <table align='center' width='300px'><tr><td>
+        <tr><td width="80px"><p style.align='left'><img id='funct' src='base/f-1.png' width="80px"/></p> </td>
+            <td width="100px" > <img id='bun' src='prob/0.png' width='100px'/></td>
+            <td width="40px"></td>
+            <td bgcolor="yellow" align="right"><h1 text-align:right; id='point'>  <br> pt </h1></td>
+        </tr>
+    </table>
+    
+    <table width="300px" align="center">
+        <colgroup><col span="5" style="width: 60px;">         </colgroup>
+        <tbody>
+        <h3><tr>
+            <td><input type="image" src="base/ago.png" width="50px" onclick="start()"></td>
+            <td><input type="image" src="value/2.png" width="50px" onclick="check(1)"></td>
+            <td><input type="image" src="value/3.png" width="50px" onclick="check(2)"></td>
+            <td><input type="image" src="value/4.png" width="50px" onclick="check(3)"></td>
+            <td><input type="image" src="value/5.png" width="50px" onclick="check(4)"></td>
+        </tr> 
+        <tr>
+            <td><input type="image" src="value/1.png" width="50px" onclick="check(0)"></td>
+            <td><input type="image" src="value/6.png" width="50px" onclick="check(-1)"></td>
+            <td><input type="image" src="value/7.png" width="50px" onclick="check(-2)"></td>
+            <td><input type="image" src="value/8.png" width="50px" onclick="check(-3)"></td>
+            <td><input type="image" src="value/9.png" width="50px" onclick="check(-4)"></td>
+        </tr> </h3>
+    </tbody>
+    </table>
+    
+    <table width="260px" align = "center"><tr><td> <p id='name_1'>합격자 명단</p> </td></tr></table>
+</body>
+</html>

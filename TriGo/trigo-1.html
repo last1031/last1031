@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta naver=""viewport" content="width=device-width">
+    <title>삼각함수 수행평가</title>
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+    //로딩 함수: 기록 파일 부르고 정리하기
+        async function load() {
+            const data = await fetch('record1.txt'); 
+            const text = await data.text(); 
+            same = text;    
+            if(same.length > 3 ) {
+                const sames = same.split(',');
+                names = sames;
+                visual(names);
+                document.getElementById('name_1').innerHTML = `${visu}`;
+                } else {
+                names = [];}
+                const musicbgm = document.querySelector('#myaudiobgm');
+                musicbgm.src=`music/bgm/${musicnum%4+1}.ogg`
+                musicbgm.play() ;  //배경 음악 끄기
+            }
+        load();
+
+    //변수 정의
+        var num = 0 // 문제 번호
+        var bunho = -1 // 문제세트[num]
+        var nums = mixset(); // 문제세트
+        var timerId; //타이머 바               
+        var name // 학번
+        var names = [] // 성적 원시 기록 자료
+        var visu = "" ; // 보기 좋은 성적 자료
+        var countclick = [] // 답이 2개가 될때까지 모으기
+        var musicnum = Math.floor(Math.random()*25*9)
+    //정답을 sin x = 0, 1/2, ... 1, -1/2, ... -1, cox-s x = 0 ... 순으로 배열
+        const answer = [[1,9],[2,8],[3,7],[4,6],[5,5],[10,16],[11,15],[12,14],[13,13],[5,13],[4,14],[3,15],[2,16],[1,1],[6,12],[7,11],[8,10],[9,9]] // sin, cos 순서대로
+
+    //숫자 섞기 함수
+        function mixset() {
+            const candidate = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18];
+            const shuffle = [];
+            while (candidate.length > 0) {
+                const random = Math.floor(Math.random() * candidate.length);
+                const spliceArray = candidate.splice(random, 1);
+                const value = spliceArray[0]; 
+                shuffle.push(value); 
+            };
+            return shuffle;
+        }
+
+    //names 자료를 보기 좋게 변환 하기
+        function visual(na) {
+            visu = "" ;
+            for(i=0 ; i < Math.min(na.length,30) ; i++) {
+                visu = visu + na[i].substr(10,4) + "(" +na[i].substr(0,2) +") ";
+            }
+        }
+
+    //새 게임 시작 함수
+        function start() {
+            const music_ = document.querySelector('#myaudio');
+            music_.src= `music/play/${musicnum%25+1}.ogg`    //음악파일 호출
+            music_.play(); 
+            musicnum++;                                     //음악 재생
+            const Timer1 = document.querySelector('#timer');
+            Timer1.value = 0;                                   //타이머 리셋
+            clearInterval(timerId);                             //타이머 반복 중지
+            var totalTime = 30000;                              //총 30초 부여
+            var oldTime = Date.now();                           //게임 시작 시각 기록
+            timerId = setInterval(() => {                   //시간 반복함수
+                const currentTime = Date.now();                 //현재 시각(밀리초)
+                const diff = currentTime - oldTime;             //걸린 시간(밀리초)
+                const remainSec = (totalTime - diff)/1000;      //남은 시간(초)
+                Timer1.value = 250-remainSec*50/6;                    //타이머 표시
+                if(remainSec<-0.2){                             //남은 시간이 0미만
+                    porf();                                     //합격여부 판단
+                    clearInterval(timerId);                     //시간 초기화
+                }
+            },500)                                              //반복 단위
+            countclick = []                                     //답안 제출 개수 초기화
+            num=0;                                              //문제 초기화
+            nums = mixset();                                    //문제세트 초기화
+            bunho = nums[num%18];                               //첫번째 문항 호출
+            loadimg(bunho);                                     //그림 호출
+            const musicbgm = document.querySelector('#myaudiobgm');
+            musicbgm.stop();  //배경 음악 끄기
+        }  
+
+    //출제 함수
+        function loadimg(k_) {
+            const imgA = document.querySelector('#funct');      //함수그림 호출
+            const imgB = document.querySelector('#bun');        //각 그림 호출
+            imgA.src = `base/g${Math.floor((k_-1)/9)}.png`;         //함수그림 번호 부여 g0, g1
+            imgB.src = `value/${(k_-1)%9 +1}.png`;              //각 그림 번호 부여 0~9번
+            }
+
+    //채점함수
+        function check(k) {
+            if(bunho<0){  //채점 가능 상태 확인 
+                alert('go! 를 눌러야 시작됩니다.'); 
+                exit();
+            } 
+
+            if (countclick.length == 0) {   //정답배열이 0개일 경우
+                countclick[0] = k*1;        //정답배열[0]에 배열
+                cccbox = document.getElementById("cc"+k)    //단추에 선택 표시
+                cccbox.style.border = "4px solid red";
+                exit();
+            } else {                        //정답배열이 1개 있을 경우
+                    if(k == countclick[0] && (k-1)%4 !== 0){    //같은 버튼을 눌러 정답 제출 취소하기
+                        ansclear(k);
+                        countclick = [];
+                        exit;
+                    }
+            }
+            if(k*1>countclick[0]) {
+                countclick.push(k);
+            } else {countclick.unshift(k);}
+            istr();
+        }
+
+        function ansclear(k2) {
+            cccbox = document.getElementById("cc"+k2); 
+            cccbox.style.border = "4px solid #ccc";
+        }
+
+    //정답 취소
+        function checkdb() {
+            if(countclick.length = 1) {
+                for(i=1;i<14;i+=4)
+                ansclear(i);
+                countclick=[];
+                } else {
+                alert('답 하나를 고른 다음 누르세요');
+            };
+        }
+
+    //정답 맞는지 확인
+        function istr() {                    
+            if(countclick[0] == answer[bunho-1][0] && countclick[1] == answer[bunho-1][1]){
+                ansclear(countclick[0]);
+                ansclear(countclick[1]);
+                countclick = [];
+                num++;
+                const Point1 = document.querySelector('#point1');
+                Point1.value = num;
+                document.getElementById('point').innerHTML = num + '<br> 점';
+                bunho = nums[num%18];
+                loadimg(bunho);
+            } else {
+                if(bunho<0){alert('go! 를 눌러야 시작됩니다.');
+                exit()} else {
+                porf();}
+            }
+        }
+    //초기화 함수
+        function zeronize() {
+            for (i=1;i<17;i++){ansclear(i);}                        //테두리 없애기
+            clearInterval(timerId);                                 //타이머 삭제
+            const Timer1 = document.querySelector('#timer');        //타이머바 호출
+            Timer1.value = 0;                                       //타이머바 초기화
+            const Point1 = document.querySelector('#point1');       //점수바 호출
+            Point1.value = 0;                                       //점수바 초기화
+            document.getElementById('point').innerHTML = ' <br> 점';//점수판 초기화
+            loadimg(0);
+            bunho = -1;                                             //버튼 오작동 방지 코드
+            countclick = [];                                        //정답 배열 초기화
+        }
+
+    //합불함수
+        function porf() {
+            if(num > 1) {yousuc(num);} else{youout();};              //4점이상 합격
+            zeronize();
+            num=0;
+        }
+
+    //탈락함수
+        function youout(){
+            const music_ = document.querySelector('#myaudio');  //음악 호출
+            music_.src= `music/${Math.floor(Math.random()*9)+1}.mp3`    //음악파일 호출
+            music_.play();                                      //음악 재생
+        }
+
+    //합격함수
+        function yousuc(s_) {
+            var yourname;
+            yourname = prompt(`${s_}점. 성공입니다.`,'학번 4자리를 입력하세요');
+            if (yourname>2100 && yourname<2826) {} else{
+                yourname = prompt('학번 입력 오류입니다.','학번 4자리를 입력하세요'); 
+                if (yourname>2100 && yourname<2826) {} else{
+                    alert('기록이 인정되지 않습니다.'); exit;}};
+                if (s_<10){s_ = "0" + s_} else {s_= ""+s_};           // 두자리 문자로 만들기
+            var when = Math.floor(Date.now()/30000)-46322871;   //통과시간 부여
+            names[names.length] = s_ + when + yourname;         //합격자 원시자료 생성
+            names.sort().reverse();                             //정렬
+            visual(names);                                      //화면에 호출
+            document.getElementById('name_1').innerHTML = `${visu}`;
+            localStorage.setItem('myNames1', names);
+        }    
+    //기록 파일 삭제하기
+    function reset() {
+            names = [];
+            saverecord();
+            visual(names);
+            document.getElementById('name_1').innerHTML = `${visu}`; //화면에 호출
+            num=0;
+            zeronize();
+        }
+    
+    //write_record.php 에 기록쓰기
+        function saverecord() {
+            var xhttp = new XMLHttpRequest();
+            xhttp.open("POST", "right_record1.php", true);
+            xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhttp.send("num="+names);
+        }                
+    
+    </script>
+
+</head>
+<body>
+    <div><audio id="myaudio" /></audio><audio id="myaudiobgm" loop /></audio></div>
+    <h2>삼각함수 값 찾기 <input type="button" value="ReSet" width="100px" height="50" onclick="reset()"> </h2>
+    <table align='center' width='300px'><tr><td>
+        <!-- <li>초과 <input id='point2' type="range" min="6" max="18" style="width:250px" value="0"></li> -->
+        <ui>시간 <input id='timer' type="range" min="0" max="250" style="width:250px" value="0"></ui>
+        <ui>점수 <input id='point1' type="range" min="0" max="6" style="width:250px" value="0"></ui>
+        </td></tr>
+    </table>
+
+    <table align='center' width='320px'><tr><td>
+        <tr><td width="80px"><p style.align='left'><img id='funct' src='base/g-1.png' width="90px"/></p> </td>
+            <td><h1> = </h1></td>
+            <td width="130px" > <img id='bun' src='value/0.png' width='130px'/></td>
+            <td width="5px"></td>
+            <td bgcolor="yellow" align="right"><h1 text-align:right; id='point'>  <br> 점 </h1></td>
+        </tr>
+    </table>
+    
+    <table width="300px" align="center">
+        <colgroup><col span="5" style="width: 60px;">         </colgroup>
+        <tbody>
+        <h3>
+        <tr><td><input type="image" id="cc" src="base/ago.png" width="50px" onclick="start()"></td>
+            <td><input type="image" id="cc2" src="prob/2.png" width="50px" onclick="check(2)"></td>
+            <td><input type="image" id="cc8" src="prob/8.png" width="50px" onclick="check(8)"></td>
+            <td><input type="image" id="cc10" src="prob/10.png" width="50px" onclick="check(10)"></td>
+            <td><input type="image" id="cc16" src="prob/16.png" width="50px" onclick="check(16)"></td>
+        </tr> 
+        <tr><td></td>
+            <td><input type="image" id="cc3" src="prob/3.png" width="50px" onclick="check(3)"></td>
+            <td><input type="image" id="cc7" src="prob/7.png" width="50px" onclick="check(7)"></td>
+            <td><input type="image" id="cc11" src="prob/11.png" width="50px" onclick="check(11)"></td>
+            <td><input type="image" id="cc15" src="prob/15.png" width="50px" onclick="check(15)"></td>
+        </tr> 
+        <tr><td></td>
+            <td><input type="image" id="cc4" src="prob/4.png" width="50px" onclick="check(4)"></td>
+            <td><input type="image" id="cc6" src="prob/6.png" width="50px" onclick="check(6)"></td>
+            <td><input type="image" id="cc12" src="prob/12.png" width="50px" onclick="check(12)"></td>
+            <td><input type="image" id="cc14" src="prob/14.png" width="50px" onclick="check(14)"></td>
+        </tr> 
+        <tr><td><input type="button" id="ccdb" value="무르기" width="50px" onclick="checkdb()"></td>
+            <td><input type="image" id="cc1" src="prob/1.png" width="50px" onclick="check(1)"></td>
+            <td><input type="image" id="cc5" src="prob/5.png" width="50px" onclick="check(5)"></td>
+            <td><input type="image" id="cc9" src="prob/9.png" width="50px" onclick="check(9)"></td>
+            <td><input type="image" id="cc13" src="prob/13.png" width="50px" onclick="check(13)"></td>
+        </tr> 
+    </h3>
+    </tbody>
+    </table>
+    
+    <table width="260px" align = "center"><tr><td> <p id='name_1'>합격자 명단</p> </td></tr></table>
+</body>
+</html>
